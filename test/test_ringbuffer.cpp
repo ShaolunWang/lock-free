@@ -112,3 +112,9 @@ TEST(RingBufferTest, ThreadedSmallCapacityWrap) {
   consumer.join();
   EXPECT_EQ(last_seen.load(), static_cast<int>(iterations - 1));
 }
+TEST(RingBufferTest, Destroy) {
+  auto *x = new RingBuffer<int>(8);
+  EXPECT_TRUE(x->emplace(42));
+  auto out = x->pop();
+  delete x;
+}

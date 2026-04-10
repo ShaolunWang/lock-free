@@ -27,7 +27,7 @@ public:
       size_t tail = m_tail;
       size_t head = m_head;
       while (tail != head) {
-        std::destroy(m_container[tail]);
+        std::destroy_at(m_container[tail]);
         // handling wrap around
         if (tail == m_capacity) {
           tail = 0;

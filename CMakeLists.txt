@@ -7,7 +7,7 @@ project(
   LANGUAGES CXX)
 
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_CXX_STANDARD 23)
 
 
@@ -51,6 +51,5 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   else()
     message(STATUS "Doxygen not found, not building docs")
   endif()
+  add_subdirectory(test)
 endif()
-
-add_subdirectory(test)

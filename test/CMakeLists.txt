@@ -3,7 +3,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION FALSE)
 	add_compile_definitions(Debug)
 	add_compile_options(-fsanitize=address,undefined -g)
-	add_link_options(-fsanitize=address)
+	add_link_options(-fsanitize=address,undefined)
 endif()
 
 if(CMAKE_BUILD_TYPE MATCHES THREAD)

@@ -64,8 +64,8 @@ public:
     // invariant - if ringbuffer is full, i.e. next tail is directly pointing at
     // head,
 
-    if ((current_tail + 1) % m_capacity ==
-        m_head.load(std::memory_order_acquire)) {
+    size_t next = (current_tail + 1) & (m_capacity - 1);
+    if (next == m_head.load(std::memory_order_acquire)) {
       return false;
     }
 
@@ -83,7 +83,8 @@ public:
 
     // this will make sure that the placement new always
     // happens before the store
-    m_tail.store((current_tail + 1) % m_capacity, std::memory_order_release);
+    m_tail.store((current_tail + 1) & (m_capacity - 1),
+                 std::memory_order_release);
     return true;
   }
 
@@ -91,26 +92,27 @@ public:
    * @brief removing and returning an element
    * at the top
    */
-  std::optional<T> pop() {
+  bool pop(T &result) {
     // same as the producer code, we only need to make sure the head is read
     // at the right order
     const std::size_t current_head = m_head.load(std::memory_order_relaxed);
 
     // invariant - making sure we are not popping empty ringbuffer
     if (current_head == m_tail.load(std::memory_order_acquire)) {
-      return std::nullopt;
+      return false;
     };
 
     auto *ptr = &m_container[current_head];
-    std::optional<T> out = std::move(*ptr);
+    result = std::move(*ptr);
 
     // don't do destroy at for floats and ints
     if constexpr (!std::is_trivially_destructible_v<T>) {
       std::destroy_at(&m_container[current_head]);
     }
 
-    m_head.store((current_head + 1) % m_capacity, std::memory_order_release);
-    return out;
+    m_head.store((current_head + 1) & (m_capacity - 1),
+                 std::memory_order_release);
+    return true;
   };
   bool empty() const {
     return m_head.load(std::memory_order_acquire) ==
@@ -130,6 +132,7 @@ private:
   // we want to align them so that we don't
   // really get false sharing
   // making sure m_head and m_tail are not on the same cacheline
+
   alignas(cache_line_size) std::atomic<unsigned int> m_head;
   alignas(cache_line_size) std::atomic<unsigned int> m_tail;
 
